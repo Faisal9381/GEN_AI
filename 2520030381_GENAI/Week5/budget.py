@@ -78,7 +78,7 @@ def main():
     budget = FeatureBudget.from_env()
     result = budget.calculate()
 
-    print("\\nTOKEN ECONOMICS REPORT")
+    print("\nTOKEN ECONOMICS REPORT")
     print("-" * 35)
     print(f"Input tokens/day:  {result['input_tokens_day']:,.0f}")
     print(f"Output tokens/day: {result['output_tokens_day']:,.0f}")
@@ -94,14 +94,14 @@ def main():
         "Daily budget": result["daily_budget_ok"],
         "Monthly budget": result["monthly_budget_ok"]
     }
-    print("\\nCHECKS")
+    print("\nCHECKS")
     for name, passed in checks.items():
         print(f"{name}: {'PASS' if passed else 'REVIEW'}")
 
     if all(checks.values()):
-        print("\\nRecommendation: WITHIN configured planning limits.")
+        print("\nRecommendation: WITHIN configured planning limits.")
     else:
-        print("\\nRecommendation: REVISE assumptions, limits, or design before build.")
+        print("\nRecommendation: REVISE assumptions, limits, or design before build.")
 
 if __name__ == "__main__":
     main()
