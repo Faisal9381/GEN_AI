@@ -1,0 +1,169 @@
+# Week 6: Golden Dataset Evaluation & LLM Baseline Benchmarking
+
+Welcome to **Week 6**! 👋 In this lab, we enter the world of **LLM Evaluation (Eval)**.
+
+When building applications with Large Language Models, how do you know if a model is actually accurate, or whether a prompt change or fine-tuning improved or degraded performance? You test it against a **Golden Test Set**!
+
+Here, we evaluate a local **Llama 3.2** model against a curated 30-question benchmark on tokenization and Transformers, score its answers using keyword-coverage heuristics, and export an official baseline evaluation report (`baseline_results.csv`).
+
+---
+
+## 📖 Table of Contents
+- [What You Will Learn](#-what-you-will-learn)
+- [Project Structure](#-project-structure)
+- [How Evaluation Works](#-how-evaluation-works)
+- [Prerequisites](#-prerequisites)
+- [Step-by-Step Setup](#-step-by-step-setup)
+- [How to Run](#-how-to-run)
+- [Understanding the Results & CSV Report](#-understanding-the-results--csv-report)
+- [Key Concepts Explained (Beginner Friendly)](#-key-concepts-explained-beginner-friendly)
+
+---
+
+## 🎯 What You Will Learn
+1. **Golden Evaluation Sets**: Why curated, high-quality test suites with known ground-truth answers are critical for assessing LLMs.
+2. **Deterministic Inference**: Using `temperature = 0` to produce reproducible model outputs across evaluation runs.
+3. **Keyword-Coverage Scoring**: Measuring how well the model captured core technical terms and definitions.
+4. **Baseline Reporting**: Saving versioned evaluation results (`Release v0.1`) into CSV for tracking regression over time.
+
+---
+
+## 📂 Project Structure
+
+```text
+Week6/
+├── Golden_set.json         # 30 curated benchmark questions with expected answers & keywords
+├── main.py                 # Evaluation pipeline: queries Ollama, scores responses, writes CSV
+├── baseline_results.csv    # Generated evaluation report with question-by-question scores
+├── requirements.txt        # Python dependencies (requests)
+└── README.md               # This guide
+```
+
+---
+
+## ⚙️ How Evaluation Works
+
+```text
++---------------------+      Prompt      +---------------------+
+|   Golden_set.json   | ---------------> |   Ollama (Llama 3.2)|
+|  (30 Questions)     |                  |   (temperature = 0) |
++---------------------+                  +---------------------+
+           |                                        |
+           | Expected Keywords                      | LLM Answer
+           v                                        v
++-------------------------------------------------------------+
+|                     Scoring Function                        |
+|   Score (%) = (Matched Keywords / Total Keywords) * 100     |
+|   Status    = PASS (Score >= 60%) | REVIEW (< 60%)          |
++-------------------------------------------------------------+
+                               |
+                               v
+                     +--------------------+
+                     |baseline_results.csv|
+                     |  & Terminal Report |
+                     +--------------------+
+```
+
+---
+
+## 🛠️ Prerequisites
+1. **Python 3.10+**
+2. **Ollama**:
+   - Download and install Ollama from [ollama.com](https://ollama.com/).
+   - Ensure the server is running (`ollama serve`).
+   - Pull the Llama 3.2 model:
+     ```bash
+     ollama pull llama3.2
+     ```
+
+---
+
+## 🚀 Step-by-Step Setup
+
+### Step 1: Open Terminal in Week 6 Folder
+```bash
+cd "2520030381_GENAI/Week6"
+```
+
+### Step 2: Install Required Packages
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## ▶️ How to Run
+
+Execute the evaluation pipeline:
+```bash
+python main.py
+```
+
+### Example Terminal Output:
+```text
+======================================
+GOLDEN QUESTION SET
+======================================
+Total Questions: 30
+Model: llama3.2
+
+======================================
+BASELINE RUN STARTED
+======================================
+
+--------------------------------------
+Question 1: Q001
+Question: What is tokenization in large language models?
+
+LLM Answer:
+Tokenization is the process of breaking down raw text into smaller units, called tokens...
+
+Expected Answer:
+Tokenization is the process of splitting input text into smaller units called tokens.
+
+Matched Keywords: ['splitting', 'text', 'tokens']
+Missing Keywords: []
+Score: 100.0 %
+Status: PASS
+...
+======================================
+BASELINE EVALUATION SUMMARY
+======================================
+Release Version: v0.1
+Model: llama3.2
+Total Questions: 30
+Successful Responses: 30
+Passed Questions: 25
+Questions for Review: 5
+Failed Requests: 0
+Average Keyword Coverage: 82.5 %
+Results saved to: baseline_results.csv
+```
+
+---
+
+## 📊 Understanding the Results & CSV Report
+
+The pipeline generates `baseline_results.csv` containing:
+- **`Question_ID`**: Identifier (e.g., `Q001` through `Q030`).
+- **`Question`**: The input prompt tested.
+- **`Expected_Answer`**: Ground-truth answer from documentation/literature.
+- **`LLM_Answer`**: Exact response generated by Llama 3.2.
+- **`Matched_Keywords`**: Keywords found in the answer.
+- **`Missing_Keywords`**: Keywords omitted.
+- **`Score`**: Coverage percentage ($0 - 100\%$).
+- **`Status`**: `PASS` ($\ge 60\%$) or `REVIEW` ($< 60\%$).
+- **`Release`**: Tagged as `v0.1` for benchmark comparison.
+
+---
+
+## 💡 Key Concepts Explained (Beginner Friendly)
+
+### 1. What is a "Golden Set"?
+In software development, you write unit tests with known inputs and outputs. A **Golden Set** is the machine learning equivalent: a curated, verified dataset of questions and high-quality answers used as a standard benchmark.
+
+### 2. Why use `temperature = 0` during evaluation?
+LLMs are naturally probabilistic (creative). Setting `temperature = 0` forces greedy decoding: the model always chooses the most probable token. This ensures reproducible and consistent evaluation across test runs.
+
+### 3. What is Keyword-Based Scoring?
+While more complex evaluators (like LLM-as-a-judge or semantic embeddings) exist, **keyword matching** is fast, deterministic, and free. It checks whether critical domain terms (e.g., `"subword"`, `"vocabulary"`, `"merges"`) are included in the generated explanation.
